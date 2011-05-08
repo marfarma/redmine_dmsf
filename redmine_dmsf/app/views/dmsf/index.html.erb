@@ -191,11 +191,15 @@ form_tag({:action => "entries_operation", :id => @project, :folder_id => @folder
 	<%= stylesheet_link_tag "dmsf", :plugin => "redmine_dmsf" %>
 	<%= stylesheet_link_tag "https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.10/themes/base/jquery-ui.css" %>
 	<%= stylesheet_link_tag "plupload/jquery.ui.plupload.css", :plugin => "redmine_dmsf" %>
+	
 	<%= javascript_include_tag "https://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js" %>
 	<%= javascript_include_tag "https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.10/jquery-ui.min.js" %>
-	<%= javascript_include_tag "plupload/gears_init.js", :plugin => "redmine_dmsf" %>
-	<%= javascript_include_tag "plupload/plupload.full.min.js", :plugin => "redmine_dmsf" %>
-	<%= javascript_include_tag "plupload/jquery.ui.plupload.js", :plugin => "redmine_dmsf" %>
+	<%= javascript_include_tag "plupload/plupload.js", :plugin => "redmine_dmsf" %>
+	<%= javascript_include_tag "plupload/plupload.flash.js", :plugin => "redmine_dmsf" %>
+	<%= javascript_include_tag "plupload/plupload.gears.js", :plugin => "redmine_dmsf" %>
+	<%= javascript_include_tag "plupload/plupload.html5.js", :plugin => "redmine_dmsf" %>
+	<%= javascript_include_tag "plupload/plupload.html4.js", :plugin => "redmine_dmsf" %>
+	<%= javascript_include_tag "plupload/jquery.ui.plupload/jquery.ui.plupload.js", :plugin => "redmine_dmsf" %>
 	<script type="text/javascript">
 		jQuery.noConflict();
 		
