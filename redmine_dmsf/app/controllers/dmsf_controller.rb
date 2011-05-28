@@ -63,29 +63,6 @@ class DmsfController < ApplicationController
     
   end
 
-  def download_file
-    if @file.deleted
-      render_404
-    else
-      @revision = @file.last_revision
-      Rails.logger.info "#{Time.now} from #{request.remote_ip}/#{request.env["HTTP_X_FORWARDED_FOR"]}: #{User.current.login} downloaded #{@project.identifier}://#{@file.dmsf_path_str} revision #{@revision.id}"
-      send_revision
-    end
-  end
-
-  def download_revision
-    @revision = DmsfFileRevision.find(params[:revision_id])
-    if @revision.deleted
-      render_404
-    else
-      Rails.logger.info "#{Time.now} from #{request.remote_ip}/#{request.env["HTTP_X_FORWARDED_FOR"]}: #{User.current.login} downloaded #{@project.identifier}://#{@revision.file.dmsf_path_str} revision #{@revision.id}"
-      check_project(@revision.file)
-      send_revision
-    end
-  rescue DmsfAccessError
-    render_403
-  end
-
   def entries_operation
     selected_folders = params[:subfolders]
     selected_files = params[:files]
@@ -108,7 +85,7 @@ class DmsfController < ApplicationController
     render_403
   end
 
-  def email_entries_send
+  def entries_email
     @email_params = params[:email]
     if @email_params["to"].strip.blank?
       flash[:error] = l(:error_email_to_must_be_entered)
@@ -187,13 +164,6 @@ class DmsfController < ApplicationController
     end
     
     zip
-  end
-  
-  def send_revision
-    send_file(@revision.disk_file, 
-      :filename => filename_for_content_disposition(@revision.name),
-      :type => @revision.detect_content_type, 
-      :disposition => "attachment")
   end
   
   def find_project
