@@ -1,0 +1,194 @@
+button {
+	vertical-align: middle;
+	margin-top: 1px;
+	margin-bottom: 1px;
+}
+
+/* DMSF entries list */
+table.entries tbody td, table.entries tbody tr:hover td {
+	border: solid 1px #D7D7D7;
+}
+
+table.entries  {
+	margin-bottom: 10px;
+}
+
+table.entries td.modified {
+	width: 120px;
+}
+
+table.entries td.actions {
+	width: 108px;
+}
+
+table.entries td.title {
+	width: 50%;
+}
+
+table.entries th.check {
+	width: 17px; 
+	padding: 2px; 
+	text-align: left;
+}
+
+.icon-file.filetype-doc, .icon-file.filetype-docx {
+	background-image: url(../images/filetypes/doc.png);
+}
+
+.icon-file.filetype-xls, .icon-file.filetype-xlsx {
+	background-image: url(../images/filetypes/xls.png);
+}
+
+.icon-file.filetype-ppt, .icon-file.filetype-pptx {
+	background-image: url(../images/filetypes/ppt.png);
+}
+
+.icon-file.filetype-vsd, .icon-file.filetype-vsdx {
+	background-image: url(../images/filetypes/vsd.png);
+}
+
+.icon-file.filetype-mpp {
+	background-image: url(../images/filetypes/mpp.png);
+}
+
+.icon-file.filetype-odt {
+	background-image: url(../images/filetypes/odt.png);
+}
+
+.icon-file.filetype-ods {
+	background-image: url(../images/filetypes/ods.png);
+}
+
+.icon-file.filetype-odp {
+	background-image: url(../images/filetypes/odp.png);
+}
+
+.icon-file.filetype-odg {
+	background-image: url(../images/filetypes/odg.png);
+}
+
+form.dmfs_entries {
+	margin-bottom: 10px;
+	display: block;
+}
+
+form.dmfs_entries div.controls {
+	font-size: 0.9em;
+}
+
+form.dmfs_entries div.controls input, form.dmfs_entries div.controls button {
+	font-size: 0.9em;
+}
+
+input[type="checkbox"] {
+	margin: 1px;
+}
+
+div.filename {
+	padding: 0 10px 0 10px; float: right; font-size: 0.8em;
+	white-space: nowrap;
+}
+
+td.size {
+	font-size: 0.8em;
+	white-space: nowrap;
+}
+
+td.modified {
+	font-size: 0.8em;
+}
+
+td.modified img {
+	vertical-align:text-top;
+}
+
+td.author {
+	font-size: 0.8em;
+}
+
+td.version {
+	font-size: 0.8em;
+	white-space: nowrap;
+}
+
+td.version img {
+	vertical-align:text-top;
+}
+
+/* DMSF entries list icons */
+
+div.right_icon_box {
+	float: right;
+	white-space: nowrap; 
+	padding: 0 5px 0 5px;
+}
+
+div.right_icon_box img.detail_icon {
+	padding-top: 2px;
+}
+
+/* DMSF entries upload control */
+
+.dmsf_upload textarea {
+	width: 90%;
+}
+
+.dmsf_upload legend {
+	font-weight: bold;
+}
+
+.dmsf_upload .warning {
+	padding: 4px 4px 4px 30px;
+}
+
+#uploader div.flash {
+	border: none;
+}
+
+.hidden {
+	display: none;
+}
+
+div.upload_select {
+	float: right;
+	white-space: nowrap;
+	line-height: 1.4em;
+	padding-left: 10px;
+	font-size: 0.9em;
+}
+
+div.upload_select input, div.upload_select select {
+	font-size: 0.9em;
+}
+
+.plupload_scroll {
+	max-height: 1000px;
+	min-height: 175px;
+}
+
+.ui-resizable-s {
+	bottom: 0px;
+}
+
+/* DMSF detail/commit page */
+
+.dmsf_detail .warning {
+	padding: 4px 4px 4px 30px;
+}
+
+.dmsf_detail div.data {
+	margin-left: 110px;
+}
+
+.dmsf_detail label {
+	font-weight: bold;
+	width: 100px;
+	float: left;
+	text-align: right;
+	padding-right: 10px;
+}
+
+p.no-ident {
+	margin-bottom: 0;
+	margin-top: 0;
+}
