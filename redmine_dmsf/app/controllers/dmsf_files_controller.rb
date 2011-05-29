@@ -16,7 +16,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-class DmsfFileController < ApplicationController
+class DmsfFilesController < ApplicationController
   unloadable
   
   menu_item :dmsf
@@ -25,17 +25,17 @@ class DmsfFileController < ApplicationController
   before_filter :authorize
 
   def show
-    # download is put here to provide more cler and usable links
+    # download is put here to provide more clear and usable links
     # TODO: solve this by routes    
     if params[:download]
-      if file.deleted
+      if @file.deleted
         render_404
         return
       end
-      @revision = DmsfFileRevision.find(params[:download].to_i)
-      if @revision.nil?
+      if params[:download].blank?
         @revision = @file.last_revision
       else
+        @revision = DmsfFileRevision.find(params[:download].to_i)
         if @revision.file != @file
           render_403
           return

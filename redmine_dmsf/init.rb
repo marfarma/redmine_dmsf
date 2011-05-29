@@ -45,20 +45,20 @@ Redmine::Plugin.register :redmine_dmsf do
               "dmsf_stemming_strategy" => "STEM_NONE"
             }
   
-  menu :project_menu, :dmsf, { :controller => "dmsf", :action => "index" }, :caption => :dmsf, :after => :activity, :param => :id
+  menu :project_menu, :dmsf, { :controller => "dmsf", :action => "show" }, :caption => :dmsf, :after => :activity, :param => :id
   #delete_menu_item :project_menu, :documents
   
   activity_provider :dmsf_files, :class_name => "DmsfFileRevision", :default => true
   
   project_module :dmsf do
-    permission :browse_documents, {:dmsf => [:index]}
+    permission :browse_documents, {:dmsf => [:show]}
     permission :user_preferences, {:dmsf_state => [:user_pref_save]}
     permission :view_dmsf_files, {:dmsf => [:entries_operation, :entries_email],
-      :dmsf_file => [:show]}
+      :dmsf_files => [:show]}
     permission :folder_manipulation, {:dmsf_detail => [:folder_new, :create_folder, :delete_folder, :folder_detail, :save_folder]}
-    permission :file_manipulation, {:dmsf_file_controler => [:save_file, :delete_file],
+    permission :file_manipulation, {:dmsf_files => [:save_file, :delete_file],
       :dmsf_state => [:lock_file, :unlock_file], :dmsf_upload => [:upload_files, :upload_file, :commit_files]}
-    permission :file_approval, {:dmsf_file => [:approve_file, :delete_revision], 
+    permission :file_approval, {:dmsf_files => [:approve_file, :delete_revision], 
       :dmsf_state => [:file_notify_activate, :file_notify_deactivate, :folder_notify_activate, :folder_notify_deactivate]}
     permission :force_file_unlock, {:dmsf_state => [:force_file_unlock]}
   end

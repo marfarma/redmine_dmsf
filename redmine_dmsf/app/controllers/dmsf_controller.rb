@@ -21,13 +21,12 @@ class DmsfController < ApplicationController
   
   before_filter :find_project
   before_filter :authorize
-  before_filter :find_folder, :only => [:index, :entries_operation, :email_entries_send]
-  before_filter :find_file, :only => [:download_file]
+  before_filter :find_folder, :only => [:show, :entries_operation, :email_entries_send]
   
   helper :sort
   include SortHelper
   
-  def index
+  def show
     sort_init ["title", "asc"]
     sort_update ["title", "size", "modified", "version", "author"]
     
@@ -173,12 +172,6 @@ class DmsfController < ApplicationController
   def find_folder
     @folder = DmsfFolder.find(params[:folder_id]) if params.keys.include?("folder_id")
     check_project(@folder)
-  rescue DmsfAccessError
-    render_403
-  end
-
-  def find_file
-    check_project(@file = DmsfFile.find(params[:file_id]))
   rescue DmsfAccessError
     render_403
   end

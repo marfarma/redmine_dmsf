@@ -47,7 +47,7 @@ form_tag({:action => "entries_operation", :id => @project, :folder_id => @folder
 			<td class="check"><%= check_box_tag("subfolders[]", subfolder.id, false, :title => l(:title_check_for_zip_download_or_email)) %></td>
 			<td class="title">
 				<%= link_to(h(subfolder.title),
-		          {:action => "index", :folder_id => subfolder},
+		          {:action => "show", :id => @project, :folder_id => subfolder},
 		          :class => "icon icon-folder") %>
 			</td>
 			<td class="size">-</td>
@@ -92,7 +92,7 @@ form_tag({:action => "entries_operation", :id => @project, :folder_id => @folder
 			<td class="check"><%= check_box_tag("files[]", file.id, false, :title => l(:title_check_for_zip_download_or_email)) %></td>
 			<td class="title">
 				<%= link_to(h(file.last_revision.display_title),
-		        	{:action => "download_file", :id => @project, :file_id => file},
+		        	{:controller => :dmsf_files, :action => "show", :id => file, :download => ""},
 		        	:class => "icon icon-file #{DmsfHelper.filetype_css(file.name)}",
 					:title => l(:title_title_version_version_download, :title => h(file.title), :version => file.version)) %>
 				<div class="filename"><%= h(file.display_name) %></div>
@@ -138,7 +138,7 @@ form_tag({:action => "entries_operation", :id => @project, :folder_id => @folder
 				<div class="right_icon_box" style="width: 70px;">
 					<div style="float: left">
 					<%= link_to(image_tag("filedetails.png", :plugin => "redmine_dmsf", :class =>"detail_icon"), 
-						{:controller => "dmsf_detail", :action => "file_detail", :id => @project, :file_id => file },
+						{:controller => "dmsf_files", :action => :show, :id => file },
 						:title => l(:link_details, :title =>h(file.last_revision.title))) %>
 					</div>
 					<div style="float: right; width: 44px;">
