@@ -56,7 +56,7 @@ class DmsfFilesController < ApplicationController
   end
 
   #TODO: don't create revision if nothing change
-  def save_file
+  def update
     unless params[:dmsf_file_revision]
       redirect_to :action => "file_detail", :id => @project, :file_id => @file
       return
@@ -121,7 +121,7 @@ class DmsfFilesController < ApplicationController
     end
   end
 
-  def delete_file
+  def destroy
     if !@file.nil?
       if @file.delete
         flash[:notice] = l(:notice_file_deleted)
@@ -134,7 +134,7 @@ class DmsfFilesController < ApplicationController
     redirect_to :controller => "dmsf", :action => "index", :id => @project, :folder_id => @file.folder
   end
 
-  def delete_revision
+  def destroy_revision
     @revision = DmsfFileRevision.find(params[:revision_id])
     check_project(@revision.file)
     if @revision.file.locked_for_user?
