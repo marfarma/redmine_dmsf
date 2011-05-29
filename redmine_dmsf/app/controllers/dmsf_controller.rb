@@ -20,8 +20,9 @@ class DmsfController < ApplicationController
   unloadable
   
   before_filter :find_project
-  before_filter :authorize
-  before_filter :find_folder, :only => [:show, :entries_operation, :email_entries_send]
+  before_filter :authorize, :except => [:delete_entries]
+  before_filter :find_folder, :except => [:new, :create]
+  before_filter :find_parent, :only => [:new, :create]
   
   helper :sort
   include SortHelper
@@ -79,7 +80,7 @@ class DmsfController < ApplicationController
     end
   rescue ZipMaxFilesError
     flash[:error] = l(:error_max_files_exceeded, :number => Setting.plugin_redmine_dmsf["dmsf_max_file_download"].to_i.to_s)
-    redirect_to({:controller => "dmsf", :action => "index", :id => @project, :folder_id => @folder})
+    redirect_to({:controller => "dmsf", :action => "show", :id => @project, :folder_id => @folder})
   rescue DmsfAccessError
     render_403
   end
@@ -95,10 +96,148 @@ class DmsfController < ApplicationController
       @email_params["subject"], @email_params["zipped_content"], @email_params["body"])
     File.delete(@email_params["zipped_content"])
     flash[:notice] = l(:notice_email_sent)
-    redirect_to({:controller => "dmsf", :action => "index", :id => @project, :folder_id => @folder})
+    redirect_to({:controller => "dmsf", :action => "show", :id => @project, :folder_id => @folder})
   end
 
   class ZipMaxFilesError < StandardError
+  end
+
+  def delete_entries
+    selected_folders = params[:subfolders]
+    selected_files = params[:files]
+    if selected_folders.nil? && selected_files.nil?
+      flash[:warning] = l(:warning_no_entries_selected)
+    else
+      failed_entries = []
+      deleted_files = []
+      deleted_folders = []
+      unless selected_folders.nil?
+        if User.current.allowed_to?(:folder_manipulation, @project)
+          selected_folders.each do |subfolderid|
+            subfolder = DmsfFolder.find(subfolderid)
+            next if subfolder.nil?
+            if subfolder.project != @project || !subfolder.delete
+              failed_entries.push(subfolder) 
+            else
+              deleted_folders.push(subfolder)
+            end
+          end
+        else
+          flash[:error] = l(:error_user_has_not_right_delete_folder)
+        end
+      end
+      unless selected_files.nil?
+        if User.current.allowed_to?(:file_manipulation, @project)
+          selected_files.each do |fileid|
+            file = DmsfFile.find(fileid)
+            next if file.nil?
+            if file.project != @project || !file.delete
+              failed_entries.push(file)
+            else
+              deleted_files.push(file)
+            end
+          end
+        else
+          flash[:error] = l(:error_user_has_not_right_delete_file)
+        end
+      end
+      unless deleted_folders.empty?
+        Rails.logger.info "#{Time.now} from #{request.remote_ip}/#{request.env["HTTP_X_FORWARDED_FOR"]}: #{User.current.login} deleted folders from project #{@project.identifier}:"
+        deleted_folders.each {|f| Rails.logger.info "\t#{f.dmsf_path_str}:"}
+      end
+      unless deleted_files.empty?
+        Rails.logger.info "#{Time.now} from #{request.remote_ip}/#{request.env["HTTP_X_FORWARDED_FOR"]}: #{User.current.login} deleted files from project #{@project.identifier}:"
+        deleted_files.each {|f| Rails.logger.info "\t#{f.dmsf_path_str}:"}
+        DmsfMailer.deliver_files_deleted(User.current, deleted_files)
+      end
+      if failed_entries.empty?
+        flash[:notice] = l(:notice_entries_deleted)
+      else
+        flash[:warning] = l(:warning_some_entries_were_not_deleted, :entries => failed_entries.map{|e| e.title}.join(", "))
+      end
+    end
+    
+    redirect_to :controller => "dmsf", :action => "show", :id => @project, :folder_id => @folder
+  end
+
+  # Folder manipulation
+
+  def new
+    @pathfolder = @parent
+    render :action => "edit"
+  end
+
+  def create
+    @folder = DmsfFolder.new(params[:dmsf_folder])
+    @folder.project = @project
+    @folder.folder = @parent
+    @folder.user = User.current
+    if @folder.save
+      flash[:notice] = l(:notice_folder_created)
+      Rails.logger.info "#{Time.now} from #{request.remote_ip}/#{request.env["HTTP_X_FORWARDED_FOR"]}: #{User.current.login} created folder #{@project.identifier}://#{@folder.dmsf_path_str}"
+      redirect_to({:controller => "dmsf", :action => "show", :id => @project, :folder_id => @folder})
+    else
+      @pathfolder = @parent
+      render :action => "edit"
+    end
+  end
+
+  def edit
+    @parent = @folder.folder
+    @pathfolder = copy_folder(@folder)
+  end
+
+  def save
+    unless params[:dmsf_folder]
+      redirect_to :controller => "dmsf", :action => "show", :id => @project, :folder_id => @folder
+      return
+    end
+    @pathfolder = copy_folder(@folder)
+    @folder.attributes = params[:dmsf_folder]
+    if @folder.save
+      Rails.logger.info "#{Time.now} from #{request.remote_ip}/#{request.env["HTTP_X_FORWARDED_FOR"]}: #{User.current.login} updated folder #{@project.identifier}://#{@folder.dmsf_path_str}"
+      flash[:notice] = l(:notice_folder_details_were_saved)
+      redirect_to :controller => "dmsf", :action => "show", :id => @project, :folder_id => @folder
+    else
+      render :action => "edit"
+    end
+  end
+
+  def delete
+    check_project(@delete_folder = DmsfFolder.find(params[:delete_folder_id]))
+    if !@delete_folder.nil?
+      if @delete_folder.delete
+        flash[:notice] = l(:notice_folder_deleted)
+        Rails.logger.info "#{Time.now} from #{request.remote_ip}/#{request.env["HTTP_X_FORWARDED_FOR"]}: #{User.current.login} deleted folder #{@project.identifier}://#{@delete_folder.dmsf_path_str}"
+      else
+        flash[:error] = l(:error_folder_is_not_empty)
+      end
+    end
+    redirect_to :controller => "dmsf", :action => "show", :id => @project, :folder_id => @folder
+  rescue DmsfAccessError
+    render_403  
+  end
+
+  def notify_activate
+    if @folder.notification
+      flash[:warning] = l(:warning_folder_notifications_already_activated)
+    else
+      @folder.notify_activate
+      flash[:notice] = l(:notice_folder_notifications_activated)
+    end
+    redirect_to params[:current] ? params[:current] : 
+      {:controller => "dmsf", :action => "show", :id => @project, :folder_id => @folder.folder}
+  end
+  
+  def notify_deactivate
+    if !@folder.notification
+      flash[:warning] = l(:warning_folder_notifications_already_deactivated)
+    else
+      @folder.notify_deactivate
+      flash[:notice] = l(:notice_folder_notifications_deactivated)
+    end
+    redirect_to params[:current] ? params[:current] : 
+      {:controller => "dmsf", :action => "show", :id => @project, :folder_id => @folder.folder}
   end
 
   private
@@ -176,10 +315,23 @@ class DmsfController < ApplicationController
     render_403
   end
 
+  def find_parent
+    @parent = DmsfFolder.find(params[:parent_id]) if params.keys.include?("parent_id")
+    check_project(@parent)
+  rescue DmsfAccessError
+    render_403
+  end
+
   def check_project(entry)
     if !entry.nil? && entry.project != @project
       raise DmsfAccessError, l(:error_entry_project_does_not_match_current_project) 
     end
+  end
+
+  def copy_folder(folder)
+    copy = folder.clone
+    copy.id = folder.id
+    copy
   end
 
 end
