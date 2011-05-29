@@ -26,8 +26,7 @@ class DmsfFilesController < ApplicationController
 
   def show
     # download is put here to provide more clear and usable links
-    # TODO: solve this by routes    
-    if params[:download]
+    if params.has_key?(:download)
       if @file.deleted
         render_404
         return
