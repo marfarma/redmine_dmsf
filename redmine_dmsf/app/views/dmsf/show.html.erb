@@ -173,8 +173,7 @@ form_tag({:action => "entries_operation", :id => @project, :folder_id => @folder
 	</div>
 	<br />
 <% end %>
-
-<%= render(:partial => "multi_upload") %>
+<%= render(:partial => "multi_upload") if User.current.allowed_to?(:file_manipulation, @project) %>
 <br />
 
 <% content_for :header_tags do %>

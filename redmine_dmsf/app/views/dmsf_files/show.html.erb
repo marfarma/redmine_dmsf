@@ -41,18 +41,13 @@
 <%= render(:partial => "/dmsf/path", :locals => {:path => path}) %>
 / 
 <%= h(@file.last_revision.title) %>
-<% if @file.notification %>
-	<%= image_tag("notify.png", :plugin => "redmine_dmsf",
-		:title => l(:title_notifications_active)) %>
-<% end %>
+<%= image_tag("notify.png", :plugin => "redmine_dmsf", :title => l(:title_notifications_active)) if @file.notification %>
 </h2>
 
 <%= error_messages_for("file") %>
 <%= error_messages_for("revision") %>
 
-<% if User.current.allowed_to?(:file_manipulation, @file.project) %>
-	<%= render(:partial => 'file_new_revision') %>
-<% end %>
+<%= render(:partial => "file_new_revision") if User.current.allowed_to?(:file_manipulation, @file.project) %>
 
 <h3><%= l(:heading_revisions) %></h3>
 <% @file.revisions.each do |revision| %>
