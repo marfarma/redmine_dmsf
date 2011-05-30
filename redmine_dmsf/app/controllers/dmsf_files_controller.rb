@@ -21,7 +21,8 @@ class DmsfFilesController < ApplicationController
   
   menu_item :dmsf
   
-  before_filter :find_file
+  before_filter :find_file, :except => [:delete_revision]
+  before_filter :find_revision, :only => [:delete_revision]
   before_filter :authorize
 
   def show
@@ -56,14 +57,14 @@ class DmsfFilesController < ApplicationController
   end
 
   #TODO: don't create revision if nothing change
-  def update
+  def create_revision
     unless params[:dmsf_file_revision]
-      redirect_to :action => "file_detail", :id => @project, :file_id => @file
+      redirect_to :action => "show", :id => @file
       return
     end
     if @file.locked_for_user?
       flash[:error] = l(:error_file_is_locked)
-      redirect_to :action => "file_detail", :id => @project, :file_id => @file
+      redirect_to :action => "show", :id => @file
     else
       #TODO: validate folder_id
       @revision = DmsfFileRevision.new(params[:dmsf_file_revision])
@@ -114,14 +115,14 @@ class DmsfFilesController < ApplicationController
         rescue ActionView::MissingTemplate => e
           Rails.logger.error "Could not send email notifications: " + e
         end
-        redirect_to :action => "file_detail", :id => @project, :file_id => @file
+        redirect_to :action => "show", :id => @file
       else
-        render :action => "file_detail"
+        render :action => "show"
       end
     end
   end
 
-  def destroy
+  def delete
     if !@file.nil?
       if @file.delete
         flash[:notice] = l(:notice_file_deleted)
@@ -131,12 +132,10 @@ class DmsfFilesController < ApplicationController
         flash[:error] = l(:error_file_is_locked)
       end
     end
-    redirect_to :controller => "dmsf", :action => "index", :id => @project, :folder_id => @file.folder
+    redirect_to :controller => "dmsf", :action => "show", :id => @project, :folder_id => @file.folder
   end
 
-  def destroy_revision
-    @revision = DmsfFileRevision.find(params[:revision_id])
-    check_project(@revision.file)
+  def delete_revision
     if @revision.file.locked_for_user?
       flash[:error] = l(:error_file_is_locked)
     else
@@ -152,7 +151,55 @@ class DmsfFilesController < ApplicationController
         end
       end
     end
-    redirect_to :action => "file_detail", :id => @project, :file_id => @revision.file
+    redirect_to :action => "show", :id => @file
+  end
+
+  def lock
+    if @file.locked?
+      flash[:warning] = l(:warning_file_already_locked)
+    else
+      @file.lock
+      flash[:notice] = l(:notice_file_locked)
+    end
+      redirect_to params[:current] ? params[:current] : 
+        {:controller => "dmsf", :action => "show", :id => @project, :folder_id => @file.folder}
+  end
+  
+  def unlock
+    if !@file.locked?
+      flash[:warning] = l(:warning_file_not_locked)
+    else
+      if @file.locks[0].user == User.current || User.current.allowed_to?(:force_file_unlock, @file.project)
+        @file.unlock
+        flash[:notice] = l(:notice_file_unlocked)
+      else
+        flash[:error] = l(:error_only_user_that_locked_file_can_unlock_it)
+      end
+    end
+    redirect_to params[:current] ? params[:current] : 
+        {:controller => "dmsf", :action => "show", :id => @project, :folder_id => @file.folder}
+  end
+
+  def notify_activate
+    if @file.notification
+      flash[:warning] = l(:warning_file_notifications_already_activated)
+    else
+      @file.notify_activate
+      flash[:notice] = l(:notice_file_notifications_activated)
+    end
+    redirect_to params[:current] ? params[:current] :
+      {:controller => "dmsf", :action => "show", :id => @project, :folder_id => @file.folder}
+  end
+  
+  def notify_deactivate
+    if !@file.notification
+      flash[:warning] = l(:warning_file_notifications_already_deactivated)
+    else
+      @file.notify_deactivate
+      flash[:notice] = l(:notice_file_notifications_deactivated)
+    end
+    redirect_to params[:current] ? params[:current] :
+      {:controller => "dmsf", :action => "show", :id => @project, :folder_id => @file.folder}
   end
 
   private
@@ -166,6 +213,12 @@ class DmsfFilesController < ApplicationController
   
   def find_file
     @file = DmsfFile.find(params[:id])
+    @project = @file.project
+  end
+
+  def find_revision
+    @revision = DmsfFileRevision.find(params[:id])
+    @file = @revision.file 
     @project = @file.project
   end
 

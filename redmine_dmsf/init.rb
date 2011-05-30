@@ -56,9 +56,9 @@ Redmine::Plugin.register :redmine_dmsf do
     permission :view_dmsf_files, {:dmsf => [:entries_operation, :entries_email],
       :dmsf_files => [:show]}
     permission :folder_manipulation, {:dmsf => [:new, :create, :delete, :edit, :save]}
-    permission :file_manipulation, {:dmsf_files => [:update, :destroy, :lock, :unlock],
+    permission :file_manipulation, {:dmsf_files => [:create_revision, :delete, :lock, :unlock],
       :dmsf_upload => [:upload_files, :upload_file, :commit_files]}
-    permission :file_approval, {:dmsf_files => [:destroy_revision, :notify_activate, :notify_deactivate], 
+    permission :file_approval, {:dmsf_files => [:delete_revision, :notify_activate, :notify_deactivate], 
       :dmsf => [:notify_activate, :notify_deactivate]}
     permission :force_file_unlock, {}
   end
