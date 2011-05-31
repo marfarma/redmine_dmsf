@@ -88,7 +88,7 @@ class DmsfController < ApplicationController
   def entries_email
     @email_params = params[:email]
     if @email_params["to"].strip.blank?
-      flash[:error] = l(:error_email_to_must_be_entered)
+      flash.now[:error] = l(:error_email_to_must_be_entered)
       render :action => "email_entries"
       return
     end
