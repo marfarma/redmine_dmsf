@@ -37,33 +37,48 @@ class DmsfFilesCopyController < ApplicationController
       if !@target_folder.nil? && @target_folder.project != @target_project
         raise DmsfAccessError, l(:error_entry_project_does_not_match_current_project) 
       end
-      
-      new_tracker = params[:new_tracker_id].blank? ? nil : @target_project.trackers.find_by_id(params[:new_tracker_id])
-      unsaved_issue_ids = []
-      moved_issues = []
-      @issues.each do |issue|
-        issue.reload
-        issue.init_journal(User.current)
-        issue.current_journal.notes = @notes if @notes.present?
-        call_hook(:controller_issues_move_before_save, { :params => params, :issue => issue, :target_project => @target_project, :copy => !!@copy })
-        if r = issue.move_to_project(@target_project, new_tracker, {:copy => @copy, :attributes => extract_changed_attributes_for_move(params)})
-          moved_issues << r
-        else
-          unsaved_issue_ids << issue.id
-        end
-      end
-      set_flash_from_bulk_issue_save(@issues, unsaved_issue_ids)
 
-      if params[:follow]
-        if @issues.size == 1 && moved_issues.size == 1
-          redirect_to :controller => 'issues', :action => 'show', :id => moved_issues.first
-        else
-          redirect_to :controller => 'issues', :action => 'index', :project_id => (@target_project || @project)
-        end
+      name = @file.name;
+      
+      new_revision = DmsfFileRevision.new
+      file = DmsfFile.find_file_by_name(@target_project, @target_folder, name)
+      if file.nil?
+        file = DmsfFile.new
+        file.project = @target_project
+        file.name = name
+        file.folder = @target_folder
+        file.notification = !Setting.plugin_redmine_dmsf["dmsf_default_notifications"].blank?
       else
-        redirect_to :controller => 'issues', :action => 'index', :project_id => @project
+        if file.locked_for_user?
+          # Error here
+        end
       end
-      return
+
+      last_revision = @file.last_revision
+      
+      new_revision.folder = @target_folder
+      new_revision.file = file
+      new_revision.user = User.current
+      new_revision.name = name
+      new_revision.title = @file.title
+      new_revision.description = @file.description
+      #new_revision.comment = 
+      new_revision.source_revision = last_revision
+      new_revision.major_version = last_revision.major_version
+      new_revision.minor_version = last_revision.minor_version
+      new_revision.workflow = last_revision.workflow
+      new_revision.mime_type = last_revision.mime_type
+      new_revision.size = last_revision.size
+      new_revision.disk_filename = last_revision.disk_filename
+
+      if file.save && new_revision.save
+        file.reload
+      else
+        # Error
+      end
+
+      flash[:notice] = l(:notice_file_copied)
+      redirect_to :controller => "dmsf_files", :action => "show", :id => file
     end
   end
 
