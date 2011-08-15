@@ -30,10 +30,9 @@
 						:title => l(:title_notifications_not_active_activate)) %>
 			<% end %>
 		<% end %>
-		
-		&nbsp;
-		<%= link_to("Copy", {:controller => :dmsf_files_copy, :action => "new", :id => @file }) %>
 	<% end %>
+	&nbsp;
+	<%= link_to(image_tag("copy.png"), {:controller => :dmsf_files_copy, :action => "new", :id => @file }, :title => l(:title_copy_or_move)) %>
 </div>
 
 <% path = @file.folder.nil? ? [] : @file.folder.dmsf_path %>

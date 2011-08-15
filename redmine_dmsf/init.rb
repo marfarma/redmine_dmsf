@@ -55,10 +55,10 @@ Redmine::Plugin.register :redmine_dmsf do
     permission :view_dmsf_folders, {:dmsf => [:show]}
     permission :user_preferences, {:dmsf_state => [:user_pref_save]}
     permission :view_dmsf_files, {:dmsf => [:entries_operation, :entries_email],
-      :dmsf_files => [:show]}
+      :dmsf_files => [:show], :dmsf_files_copy => [:new, :create]}
     permission :folder_manipulation, {:dmsf => [:new, :create, :delete, :edit, :save, :edit_root, :save_root]}
     permission :file_manipulation, {:dmsf_files => [:create_revision, :delete, :lock, :unlock],
-      :dmsf_upload => [:upload_files, :upload_file, :commit_files], :dmsf_files_copy => [:new, :create]}
+      :dmsf_upload => [:upload_files, :upload_file, :commit_files]}
     permission :file_approval, {:dmsf_files => [:delete_revision, :notify_activate, :notify_deactivate], 
       :dmsf => [:notify_activate, :notify_deactivate]}
     permission :force_file_unlock, {}

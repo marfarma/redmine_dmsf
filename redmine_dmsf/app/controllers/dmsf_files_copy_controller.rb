@@ -27,18 +27,22 @@ class DmsfFilesCopyController < ApplicationController
   def new
     @target_project = DmsfFile.allowed_target_projects_on_copy.detect {|p| p.id.to_s == params[:target_project_id]} if params[:target_project_id]
     @target_project ||= @project
+    flash.now[:warning] = l(:warning_no_project_to_copy_file_to) if DmsfFile.allowed_target_projects_on_copy.blank?
     render :layout => !request.xhr?
   end
 
   def create
     if request.post?
       @target_project = DmsfFile.allowed_target_projects_on_copy.detect {|p| p.id.to_s == params[:target_project_id]} if params[:target_project_id]
-      @target_folder = DmsfFolder.find(params[:target_folder_id]) if params[:target_folder_id]
+      if !@target_project
+        # Error
+      end
+      @target_folder = DmsfFolder.find(params[:target_folder_id]) unless params[:target_folder_id].blank?
       if !@target_folder.nil? && @target_folder.project != @target_project
         raise DmsfAccessError, l(:error_entry_project_does_not_match_current_project) 
       end
 
-      name = @file.name;
+      name = @file.name
       
       new_revision = DmsfFileRevision.new
       file = DmsfFile.find_file_by_name(@target_project, @target_folder, name)
@@ -78,14 +82,15 @@ class DmsfFilesCopyController < ApplicationController
       end
 
       flash[:notice] = l(:notice_file_copied)
+      log_activity(file, "was copied (is copy)")
       redirect_to :controller => "dmsf_files", :action => "show", :id => file
     end
   end
 
   private
 
-  def log_activity(action)
-    Rails.logger.info "#{Time.now.strftime('%Y-%m-%d %H:%M:%S')} #{User.current.login}@#{request.remote_ip}/#{request.env['HTTP_X_FORWARDED_FOR']}: #{action} dmsf://#{@file.project.identifier}/#{@file.id}/#{@revision.id if @revision}"
+  def log_activity(file, action)
+    Rails.logger.info "#{Time.now.strftime('%Y-%m-%d %H:%M:%S')} #{User.current.login}@#{request.remote_ip}/#{request.env['HTTP_X_FORWARDED_FOR']}: #{action} dmsf://#{file.project.identifier}/#{file.id}/#{file.last_revision.id}"
   end
 
   def find_file
