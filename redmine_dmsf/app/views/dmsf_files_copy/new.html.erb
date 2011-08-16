@@ -28,12 +28,12 @@
 				<%= label_tag("target_folder_id", l(:label_target_folder) + ":") %>
 				<%= select_tag("target_folder_id", 
 					options_for_select(DmsfFolder.directory_tree(@target_project), 
-						:selected => (@file.folder.id unless @file.folder.nil?))) %>
+						:selected => (@target_folder.id unless @target_folder.nil?))) %>
 			</p>
 		</div>
 		
 		<%= submit_tag(l(:button_copy)) %>
-		<%= submit_tag(l(:button_move), :name => 'move') %>
+		<%= submit_tag(l(:button_move), :name => 'move') if User.current.allowed_to?(:file_manipulation, @project) %>
 	<% end %>
 <% end %>
 
